@@ -1,0 +1,81 @@
+---
+- name: ca_kibana
+  vars:
+    server_hostname: ca_kibanas
+    key_size: 4096
+    passphrase: # Set if you want passphrase
+    key_type: RSA # Others include DSA, ECC, Ed25519, Ed448, X25519, X448
+    country_name: KE
+    email_address: ca_kibana@amor.com
+    organization_name: CaKibana
+  openssl_privatekey:
+    path: "/etc/kibana/{{ server_hostname }}_privkey.pem"
+    size: "{{ key_size }}"
+    type: "{{ key_type }}"
+
+- name: openssl csr
+  vars:
+    server_hostname: ca_kibanas
+    country_name: KE
+    email_address: ca_kibana@amor.com
+    organization_name: CaKibana  
+  openssl_csr:
+    path: "/etc/kibana/{{ server_hostname }}.csr"
+    privatekey_path: "/etc/kibana/{{ server_hostname }}_privkey.pem"
+    country_name: "{{ country_name }}"
+    organization_name: "{{ organization_name }}"
+    email_address: "{{ email_address }}"
+    common_name: "{{ server_hostname }}"
+
+- name: openssl certif
+  vars:
+    server_hostname: ca_kibanas
+  openssl_certificate:
+    path: "/etc/kibana/{{ server_hostname }}_cert.pem"
+    privatekey_path: "/etc/kibana/{{ server_hostname }}_privkey.pem"
+    csr_path: "/etc/kibana/{{ server_hostname }}.csr"
+    provider: selfsigned
+
+
+- name: Change permissions key
+  vars:
+    server_hostname: ca_kibanas
+  file:
+    path: /etc/kibana/{{ server_hostname }}_privkey.pem
+    mode: '0777'
+
+- name: ssl enabled
+  lineinfile:
+   destfile: /etc/kibana/kibana.yml                
+   line: 'server.ssl.enabled: true'
+
+- name: ssl certificado
+  vars:
+    server_hostname: ca_kibanas
+  lineinfile:
+   destfile: /etc/kibana/kibana.yml
+   line: 'server.ssl.certificate:" /etc/kibana/{{ server_hostname }}_cert.pem"'
+
+- name: ssl key    
+  vars:
+    server_hostname: ca_kibanas
+  lineinfile:
+   destfile: /etc/kibana/kibana.yml
+   line: 'server.ssl.key: "/etc/kibana/{{ server_hostname }}_privkey.pem"'
+
+
+- name: restart wazuh-manager
+  service:
+   name: wazuh-manager
+   state: restarted
+
+- name: restart wazuh-api
+  service:
+   name: wazuh-api
+   state: restarted
+
+- name: restart kibana    
+  service:
+   name: kibana   
+   state: restarted
+

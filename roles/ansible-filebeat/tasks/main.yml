@@ -1,0 +1,56 @@
+---
+- name: Add Elastic apt key
+  apt_key:
+   url: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+   state: present
+
+- name: Adding elatic repo
+  apt_repository:
+   repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+   state: present
+   update_cache: true
+  changed_when: false
+
+- name: Install filebeat 7.9.2
+  vars:
+    filebeat_version: 7.9.2
+  apt:
+    name:
+      - filebeat={{ filebeat_version  }}
+    state: present
+
+- name: alertas de filebeat
+  get_url:
+    url: https://raw.githubusercontent.com/wazuh/wazuh/v3.13.2/extensions/filebeat/7.x/filebeat.yml
+    dest: /etc/filebeat/filebeat.yml
+
+- name: repo de alertas de filebeat
+  get_url:
+    url: https://raw.githubusercontent.com/wazuh/wazuh/v3.13.2/extensions/elasticsearch/7.x/wazuh-template.json
+    dest: /etc/filebeat/wazuh-template.json
+
+
+- name: Wazuh module for Filebeat
+  get_url:
+     url: https://packages.wazuh.com/3.x/filebeat/wazuh-filebeat-0.1.tar.gz
+     dest: /usr/share/filebeat/module
+
+- name: Extract foo.tgz into /var/lib/foo
+  unarchive:
+     src: /usr/share/filebeat/module/wazuh-filebeat-0.1.tar.gz
+     dest: /usr/share/filebeat/module
+
+- name: Defining Filebeat YOUT_ELASTIC_SERVER_IP
+  lineinfile:
+   destfile: /etc/filebeat/filebeat.yml
+   regexp: 'output.elasticsearch.hosts:'
+   line: 'output.elasticsearch.hosts: ["http://localhost:9200"]'
+
+# Starting filebeat
+
+- name: Starting filebeat.service
+  service:
+   name: filebeat
+   state: started
+
+

@@ -1,0 +1,61 @@
+---
+- name: elasticsearch xpack false
+  lineinfile:
+   destfile: /etc/kibana/kibana.yml 
+   line: 'xpack.security.enabled: false'
+
+- name: restart kibana
+  service:
+    name: kibana
+    state: restarted
+
+
+
+- name: comentar
+  lineinfile:
+   destfile: /etc/kibana/kibana.yml
+   line: 'elasticsearch.hosts: ["http://localhost:9200"]'
+   state: absent
+
+- name: comentar
+  lineinfile:
+   destfile: /etc/kibana/kibana.yml
+   line: 'elasticsearch.hosts: ["https://127.0.0.1:9200"]'
+  
+
+
+- name: elasticseach username kibana
+  lineinfile:
+   destfile: /etc/kibana/kibana.yml
+   regexp: 'elasticsearch.username: "kibana_system"'
+   line: 'elasticsearch.username: "admin"'
+
+- name: elasticseach password kibana 
+  lineinfile:
+   destfile: /etc/kibana/kibana.yml              
+   regexp: 'elasticsearch.password: "pass"'
+   line: 'elasticsearch.password: "admin"'
+
+- name: Disable SSL verification because we use self-signed demo certificates
+  lineinfile:
+   destfile: /etc/kibana/kibana.yml              
+   regexp: 'elasticsearch.ssl.verificationMode: full'
+   line:   'elasticsearch.ssl.verificationMode: none'
+
+- name: Whitelist the Search Guard Multi Tenancy Header
+  lineinfile:
+   destfile: /etc/kibana/kibana.yml
+   regexp: 'elasticsearch.requestHeadersWhitelist: [ authorization ]'
+   line:   'elasticsearch.requestHeadersWhitelist: [ "Authorization" , "sgtenant" ]'
+
+
+- name: memory space size
+  lineinfile:
+   destfile: /etc/default/kibana
+   line: 'NODE_OPTIONS="--max-old-space-size=4096"'
+
+- name: restart kibana
+  service:
+    name: kibana
+    state: restarted
+

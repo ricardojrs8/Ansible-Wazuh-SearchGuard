@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  become: yes
+  gather_facts: no
+  connection: local
+  roles:
+   #- ansible-wazuh-manager
+   #- ansible-filebeat
+   #- ansible-elasticsearch
+   #- ansible-kibana
+   #- ansible-searchguar-elastic
+   #- ansible-searchguar-kibana
+   - ansible-https-kibana
+    

@@ -1,0 +1,77 @@
+---
+- name: elasticsearch xpack false
+  lineinfile:
+   destfile: /etc/elasticsearch/elasticsearch.yml
+   line: 'xpack.security.enabled: false'
+
+- name: bootstrap memoery lock
+  lineinfile:
+   destfile: /etc/elasticsearch/elasticsearch.yml
+   line: 'bootstrap.memory_lock: true'
+
+
+- name: comentar
+  lineinfile:
+   destfile: /etc/filebeat/filebeat.yml
+   line: 'output.elasticsearch.hosts: ["http://localhost:9200"]'
+   state: absent
+
+- name: Permiso install_demo
+  file:
+    path: /usr/share/elasticsearch/plugins/search-guard-7/tools/install_demo_configuration.sh
+    mode: 0755
+
+
+- name: cluster.name_searchguard_demo
+  lineinfile:
+   destfile: /etc/elasticsearch/elasticsearch.yml
+   regexp: 'cluster.name: searchguard_demo'
+   line: 'cluster.name: my-lab'
+
+
+- name: modificacion filebeat_yml
+  blockinfile:
+    path: /etc/filebeat/filebeat.yml
+    block: |
+      output.elasticsearch:
+          output.elasticsearch:
+          hosts: ['127.0.0.1:9200']
+          username: admin
+          password: admin
+          protocol: https
+          ssl.certificate_authorities: ["/etc/filebeat/root-ca.pem"]
+
+- name: Copy root-ca.pem /etc/filebeat
+  copy:
+    src: /etc/elasticsearch/root-ca.pem 
+    dest: /etc/filebeat
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: restart filebeat
+  service:
+    name: filebeat
+    state: restarted
+
+# ajustes de ealstic
+
+#    ^--- there is a tab there.	
+- name: Ajuste de Elasticsearch
+  lineinfile:
+   destfile: /etc/elasticsearch/jvm.options
+   regexp: '-Xms1g'
+   line: '-Xms4g'
+
+- name: Ajuste de Elasticsearch
+  lineinfile:
+   destfile: /etc/elasticsearch/jvm.options
+   regexp: '-Xmx1g'
+   line: '-Xmx4g'
+
+
+- name: restart elasticsearch
+  service:
+    name: elasticsearch
+    state: restarted
+

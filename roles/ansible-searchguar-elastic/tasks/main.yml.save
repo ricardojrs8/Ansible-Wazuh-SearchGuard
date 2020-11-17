@@ -1,0 +1,95 @@
+---
+- name: elasticsearch xpack false
+  lineinfile:
+   destfile: /etc/elasticsearch/elasticsearch.yml
+   line: 'xpack.security.enabled: false'
+
+- name: bootstrap memoery lock
+  lineinfile:
+   destfile: /etc/elasticsearch/elasticsearch.yml
+   line: 'bootstrap.memory_lock: true'
+
+
+- name: comentar
+  lineinfile:
+   destfile: /etc/filebeat/filebeat.yml
+   line: 'output.elasticsearch.hosts: ["http://localhost:9200"]'
+   state: absent
+
+- name: SearchGuar ElasticS
+  become: yes
+  get_url:
+    url: https://maven.search-guard.com/search-guard-suite-release/com/floragunn/search-guard-suite-plugin/7.9.2-46.2.0/search-guard-suite-plugin-7.9.2-46.2.0.zip
+    dest: /usr/share/elasticsearch/plugins/
+
+- name: Install unzip
+  apt:
+    name:
+      - unzip
+    state: present
+
+- name: descomprimir el seaxrch-guard
+  unarchive:
+    src: /usr/share/elasticsearch/plugins/search-guard-suite-plugin-7.9.2-46.2.0.zip
+    dest: /usr/share/elasticsearch/plugins/
+    remote_src: True 
+
+- file: 
+     path: /usr/share/elasticsearch/plugins/tools/install_demo_configuration.sh
+     mode: "0777"
+#    ^--- there is a tab there.
+
+
+- name: search guard demo config
+  command: /usr/share/elasticsearch/plugins/tools/install_demo_configuration.sh -y
+  become: yes
+  become_user: vagrant
+  become_method: doas
+  ignore_errors: true
+
+- name: modificacion filebeat_yml
+  blockinfile:
+    path: /etc/filebeat/filebeat.yml
+    block: |
+      output.elasticsearch:
+          output.elasticsearch:
+          hosts: ['127.0.0.1:9200']
+          username: admin
+          password: admin
+          protocol: https
+          ssl.certificate_authorities: ["/etc/filebeat/root-ca.pem"]
+
+- name: Copy root-ca.pem /etc/filebeat
+  copy:
+    src: /etc/elasticsearch/root-ca.pem 
+    dest: /etc/filebeat
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: restart filebeat
+  service:
+    name: filebeat
+    state: restarted
+
+# ajustes de ealstic
+
+#    ^--- there is a tab there.	
+- name: Ajuste de Elasticsearch
+  lineinfile:
+   destfile: /etc/elasticsearch/jvm.options
+   regexp: '-Xms1g'
+   line: '-Xms4g'
+
+- name: Ajuste de Elasticsearch
+  lineinfile:
+   destfile: /etc/elasticsearch/jvm.options
+   regexp: '-Xmx1g'
+   line: '-Xmx4g'
+
+
+- name: restart elasticsearch
+  service:
+    name: elasticsearch
+    state: restarted
+

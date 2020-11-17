@@ -1,0 +1,72 @@
+---
+# Install Kibana 
+- name: Install Kibana 7.9.2 with apt
+  vars:
+   kibana_version: 7.9.2
+  apt:
+   name:
+    - kibana={{ kibana_version  }}
+   update_cache: yes
+
+- name: permisos optimize file
+  file:
+    path: /usr/share/kibana/optimize
+    state: directory
+    recurse: yes
+    owner: kibana
+    group: kibana
+    mode: 0755
+  changed_when: False
+
+
+- name: permisos plugins file              
+  file:
+    path: /usr/share/kibana/plugins           
+    state: directory
+    recurse: yes
+    owner: kibana
+    group: kibana
+    mode: 0755
+  changed_when: False
+
+
+- name: Install Wazuh Plugin (can take a while)
+  vars:
+   node_options: --no-warnings --max-old-space-size=2048 --max-http-header-size=65536
+   wazuh_app_url: https://packages.wazuh.com/wazuhapp/wazuhapp
+   wazuh_version: 3.13.2
+   elastic_stack_version: 7.9.2
+  shell: >-
+    /usr/share/kibana/bin/kibana-plugin install
+    {{ wazuh_app_url }}-{{ wazuh_version }}_{{ elastic_stack_version }}.zip
+  args:
+    executable: /bin/bash
+    creates: /usr/share/kibana/plugins/wazuh/package.json
+    chdir: /usr/share/kibana
+  become: yes
+  become_user: kibana
+
+- name: restart kibana
+  service:
+    name: kibana
+    state: restarted
+
+- name: Kibana host
+  lineinfile:
+   destfile: /etc/kibana/kibana.yml
+   regexp: 'server.host:'
+   line: 'server.host: "192.168.200.12"'
+
+- name: Defining Elasticsearch host
+  lineinfile:
+   destfile: /etc/kibana/kibana.yml
+   regexp: 'elasticsearch.hosts:'
+   line: 'elasticsearch.hosts: ["http://localhost:9200"]'
+
+# Starting Kibana
+
+- name: Starting Kibana
+  service:
+   name: kibana
+   state: started
+

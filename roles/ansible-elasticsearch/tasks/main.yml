@@ -1,0 +1,32 @@
+---
+- name: Install Elasticsearch 7.9.2
+  vars:
+    elasticsearch_version: 7.9.2
+  apt:
+    name:
+      - elasticsearch={{ elasticsearch_version }}
+    state: present   
+
+- name: Updating the config file to allow outside access
+  lineinfile:
+   destfile: /etc/elasticsearch/elasticsearch.yml
+   regexp: 'network.host:'
+   line: 'network.host: localhost'
+
+- name: Updating the config file to allow outside access
+  lineinfile:
+   destfile: /etc/elasticsearch/elasticsearch.yml
+   regexp: 'node.name:'
+   line: 'node.name: my-lab'
+
+- name: Updating the config file to allow outside access
+  lineinfile:
+   destfile: /etc/elasticsearch/elasticsearch.yml
+   regexp: 'cluster.initial_master_nodes:'
+   line: 'cluster.initial_master_nodes: ["my-lab"]'
+
+- name: Starting Elasticsearch
+  service:
+   name: elasticsearch
+   state: started
+
