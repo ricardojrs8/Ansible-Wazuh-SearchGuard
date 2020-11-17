@@ -1,0 +1,1 @@
+# Ansible-Wazuh-SearchGuard
