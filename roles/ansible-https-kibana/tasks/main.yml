@@ -54,7 +54,7 @@
     server_hostname: ca_kibanas
   lineinfile:
    destfile: /etc/kibana/kibana.yml
-   line: 'server.ssl.certificate:" /etc/kibana/{{ server_hostname }}_cert.pem"'
+   line: 'server.ssl.certificate: "/etc/kibana/{{ server_hostname }}_cert.pem"'
 
 - name: ssl key    
   vars:
