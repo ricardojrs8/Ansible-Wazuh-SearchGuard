@@ -22,7 +22,7 @@ _ejecución de wazuh con ansible._
 
 ```
 
-_ verificar la sintaxi_
+_verificar la sintaxi_
 ```
 ansible-playbook --syntax-check wazuh-autom.yml
 ```
@@ -60,7 +60,7 @@ Nos vamos hacia_
 # sudo bin/elasticsearch-plugin install https://maven.search-guard.com/search-guard-suite-release/com/floragunn/search-guard-suite-plugin/7.9.2-46.2.0/search-guard-suite-plugin-7.9.2-46.2.0.zip
 ```
 
-_ verificar la sintaxi_
+_verificar la sintaxi_
 ```
 ansible-playbook --syntax-check wazuh-autom.yml
 ```
@@ -69,6 +69,25 @@ _ejecución_
 ```
 time ansible-playbook -i ./gce.py wazuh-autom.yml
 ```
+
+_luego ejecutar_
+
+```
+/usr/share/elasticsearch/plugins/search-guard-7/tools/sgadmin.sh \
+-cd /usr/share/elasticsearch/plugins/search-guard-7/sgconfig -cn my-lab -key \
+/etc/elasticsearch/kirk-key.pem -cert /etc/elasticsearch/kirk.pem -cacert \
+/etc/elasticsearch/root-ca.pem -h 127.0.0.1 -nhnv
+
+
+```
+_Puede verificar si está funcionando como se esperaba usando la siguiente solicitud (Search Guard necesita aproximadamente dos minutos para crear sus índices internos, así que tenga paciencia):_
+
+```
+
+curl -k -u admin:admin https://127.0.0.1:9200/_searchguard/authinfo?pretty
+
+```
+
 
 ```
 ---
