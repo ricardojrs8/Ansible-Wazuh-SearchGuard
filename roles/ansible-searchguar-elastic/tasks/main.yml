@@ -19,7 +19,10 @@
 - name: Permiso install_demo
   file:
     path: /usr/share/elasticsearch/plugins/search-guard-7/tools/install_demo_configuration.sh
-    mode: 0755
+    mode: 0777
+    
+- name: search guard demo config
+  command: /usr/share/elasticsearch/plugins/search-guard-7/tools/install_demo_configuration.sh -y
 
 
 - name: cluster.name_searchguard_demo
@@ -34,7 +37,6 @@
     path: /etc/filebeat/filebeat.yml
     block: |
       output.elasticsearch:
-          output.elasticsearch:
           hosts: ['127.0.0.1:9200']
           username: admin
           password: admin
